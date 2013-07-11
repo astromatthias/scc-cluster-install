@@ -23,7 +23,7 @@ function setup_nodes_tcp {
 		# update the setenv.sh script
 		SETENV_TEMPLATE=$(cat setenv.template)
 	        CATALINA_CONFIG="CATALINA_OPTS=\\\"${SETENV_TEMPLATE} -Djgroups.tcp.address=${NODE_IP} -Djgroups.tcpping.initial_hosts=${TCP_PING%?}\\\""
-		JDK_CONFIG="JAVA_HOME=\\\"${TARGET_DIRECTORY}/jdk7\\\""
+		JDK_CONFIG="JAVA_HOME=\\\"/opt/jdk7\\\""
 	        ssh ubuntu@$NODE_IP "echo -e \"#!/bin/bash\n$JDK_CONFIG\n$CATALINA_CONFIG\" > ${TARGET_DIRECTORY}/tomcat7/bin/setenv.sh"
 	done
 }
@@ -35,7 +35,7 @@ function setup_nodes {
 		node_ip ${NODE}
 		# copy the fedora template
 		ssh -t ubuntu@${NODE_IP} "sudo mkdir ${TARGET_DIRECTORY} && sudo chown ubuntu:ubuntu ${TARGET_DIRECTORY} && cp -R ${TEMPLATE}/* ${TARGET_DIRECTORY}/"
-		JDK_CONFIG="JAVA_HOME=\\\"${TARGET_DIRECTORY}/jdk7\\\""
+		JDK_CONFIG="JAVA_HOME=\\\"/opt/jdk7\\\""
 		SETENV_TEMPLATE=$(cat setenv.template)
 	        CATALINA_CONFIG="CATALINA_OPTS=\\\"${SETENV_TEMPLATE}\\\""
 	        ssh ubuntu@$NODE_IP "echo -e \"#!/bin/bash\n$JDK_CONFIG\n$CATALINA_CONFIG\" > ${TARGET_DIRECTORY}/tomcat7/bin/setenv.sh"
