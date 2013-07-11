@@ -85,7 +85,7 @@ function start_node {
 		node_ip ${NODE}
 		ssh ubuntu@${NODE_IP} "cd ${TARGET_DIRECTORY} && ${TARGET_DIRECTORY}/tomcat7/bin/startup.sh"
 		NODE_TIMEOUT=$(date +%s)
-		let NODE_TIMEOUT=NODE_TIMEOUT+1000*60*3			
+		let NODE_TIMEOUT=NODE_TIMEOUT+180
 		echo "waiting 3 mins for node $NODE [$NODE_IP]"
 		RESPONSE=404
 		while [[ "$RESPONSE" != "200" && $(date +%s) -lt $NODE_TIMEOUT ]]; do
