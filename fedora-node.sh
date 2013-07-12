@@ -37,7 +37,7 @@ function setup_nodes {
 		ssh -t ubuntu@${NODE_IP} "sudo mkdir ${TARGET_DIRECTORY} && sudo chown ubuntu:ubuntu ${TARGET_DIRECTORY} && cp -R ${TEMPLATE}/* ${TARGET_DIRECTORY}/"
 		JDK_CONFIG="JAVA_HOME=\\\"/opt/jdk7\\\""
 		SETENV_TEMPLATE=$(cat setenv.template)
-	        CATALINA_CONFIG="CATALINA_OPTS=\\\"${SETENV_TEMPLATE}\\\""
+	        CATALINA_CONFIG="CATALINA_OPTS=\\\"${SETENV_TEMPLATE} -Djgroups.bind_addr=${NODE_IP} -Djgroups.udp.mcast_addr=239.42.42.42\\\""
 	        ssh ubuntu@$NODE_IP "echo -e \"#!/bin/bash\n$JDK_CONFIG\n$CATALINA_CONFIG\" > ${TARGET_DIRECTORY}/tomcat7/bin/setenv.sh"
 	done
 }
