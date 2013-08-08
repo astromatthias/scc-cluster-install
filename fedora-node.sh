@@ -33,7 +33,7 @@ function setup_nodes {
 	for NODE in $1; do
 		echo "setting up node: ${NODE}"
 		node_ip ${NODE}
-		# copy the fedora template
+		# copy the fedora template 
 		ssh -t ubuntu@${NODE_IP} "sudo mkdir ${TARGET_DIRECTORY} && sudo chown ubuntu:ubuntu ${TARGET_DIRECTORY} && cp -R ${TEMPLATE}/* ${TARGET_DIRECTORY}/"
 		JDK_CONFIG="JAVA_HOME=\\\"/opt/jdk7\\\""
 		SETENV_TEMPLATE=$(cat setenv.template)
@@ -62,6 +62,26 @@ function setup_loadbalancer {
 	echo -e $PROPERTIES > /tmp/jk_workers.properties
 	scp /tmp/jk_workers.properties ubuntu@${LB_IP}:
 	ssh ubuntu@${LB_IP} "sudo mv /home/ubuntu/jk_workers.properties /etc/apache2/"
+}
+
+# konfiguriert Apache  um als Load Balancer zu fungieren. basiert auf Image: FEDORA_EASY_LOAD
+function config_easy_load { 
+	node_ip  $1
+	LB_IP=$NODE_IP
+	IFS=","
+	PROPERTIES="Listen 8000\nProxyRequests Off\nProxyPass / balancer://fedoracluster/\n<Proxy balancer://fedoracluster>\n"
+	for NODE in $2; do
+	  node_ip  $NODE	
+	  BALANCER=${BALANCER}"BalancerMember http://${NODE_IP}:8000\n"
+	done
+	echo -e $PROPERTIES > /tmp/proxy-balancer
+	echo -e $BALANCER >> /tmp/proxy-balancer
+	echo -e "Order deny,allow\nAllow from all\n</Proxy>" >> /tmp/proxy-balancer
+	# copy stuff to load balancer vm 
+	scp /tmp/proxy-balancer  ubuntu@${LB_IP}:
+	ssh ubuntu@${LB_IP} "sudo mv /home/ubuntu/proxy-balancer /etc/apache2/conf.d/."
+#	ssh ubuntu@${NODE_IP} "sudo service apache2 restart"
+
 }
 
 function node_ip {
@@ -111,6 +131,7 @@ function usage {
 	echo -e "------------------------------------\n"
 	echo -e "setup-node <node-list>\t\t\t setup the comma seperated nodes"
 	echo -e "setup-lb <lb-id> <node-list>\t\t\t setup a load blanacer with the comma seperated nodes"
+	echo -e "config-lb <lb-id> <node-list>\t\t\t setup a load blanacer with the comma seperated nodes - easy way"
 	echo -e "start-node <node-list>" 
 	echo -e "stop-node <node-list>"
 	echo -e "start-lb <lb-id>"
@@ -127,6 +148,12 @@ case "$1" in
 		usage
 	fi
 	setup_nodes $2
+	;;
+	"config-lb")
+	if [ $# -lt 3 ]; then
+                usage
+        fi
+        config_easy_load $2 $3
 	;;
 	"setup-lb")
 	if [ $# -lt 3 ]; then
